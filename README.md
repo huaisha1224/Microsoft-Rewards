@@ -9,9 +9,7 @@
 
 ## 主要功能
 -	通过Selenium 控制Chrome浏览器访问bing.com，完成每日的搜索任务，来获取Microsoft Rewards每日积分。
--	本项目不需要用户提供Microsoft Rewards账户和密码，安全可靠。
--	本项目直接操作Chrome浏览器，并不需要用户在浏览器上登陆Microsoft账户。
--	本项目也不需要调用Microsoft Rewards的API接口，所以不用担心被封号。
+-	本项目直接操作Chrome浏览器，不需要用户提供Microsoft Rewards账户和密码，安全可靠。
 
 
 ## 运行环境
@@ -38,6 +36,7 @@ pip install -r requirements.txt
 
 ## 更新记录
 - 【2023-02-25】提交代码
+- 【2023-02-28】添加滕王阁序作为搜索使用
 
 
 ## 备注
