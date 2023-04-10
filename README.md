@@ -50,5 +50,5 @@ pip install -r requirements.txt
 - 【兑换提醒】
 - 【自动适配浏览器和ChromeDriver】
 
+![image](https://user-images.githubusercontent.com/3378350/230837253-1132c32f-30b5-4ead-9cae-70f8209ef55b.png)
 
-![image](https://user-images.githubusercontent.com/3378350/221791964-0a8d4ef6-2953-4662-9c41-735e8a4c6828.png)
