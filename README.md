@@ -6,6 +6,9 @@
 
 赚取每日Microsoft Rewards积分的自动化解决方案
 
+油猴脚本解决方案
+- [Microsoft Bing Rewards每日任务脚本](https://greasyfork.org/zh-CN/scripts/477107-microsoft-bing-rewards%E6%AF%8F%E6%97%A5%E4%BB%BB%E5%8A%A1%E8%84%9A%E6%9C%AC)
+
 
 ## 主要功能
 -	通过Selenium 控制Chrome浏览器访问bing.com，完成每日的搜索任务，来获取Microsoft Rewards每日积分。
