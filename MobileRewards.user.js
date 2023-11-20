@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Microsoft Bing Rewards每日任务脚本
-// @version      V1.0.7
-// @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音热门词,避免使用同样的搜索词被封号。
+// @name         移动端微软Rewards每日任务脚本
+// @version      2023.11.20
+// @description  自动完成移动端微软Rewards每日搜索任务,每次运行时获取抖音热门词,并增加随机延迟时间来避免被检测。
 // @author       怀沙2049
 // @match        https://www.bing.com/*
 // @match        https://cn.bing.com/*
@@ -9,17 +9,20 @@
 // @icon         https://www.bing.com/favicon.ico
 // @connect      tenapi.cn
 // @run-at       document-end
+// @note         更新于 2023年11月20日13:10
+// @supportURL   https://greasyfork.org/zh-CN/users/1192640-huaisha1224
+// @homepageURL  https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // @grant        GM_registerMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_openInTab
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
-// @namespace    https://gist.github.com/huaisha1224
+// @namespace    https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // ==/UserScript==
 
-var max_rewards = 35; /*重复执行的次数*/
-var search_words=[]; //搜索词
+var max_rewards = 25; //重复执行的次数
+var search_words = []; //搜索词
 
 //获取抖音热门搜索词用来作为关键词
 function douyinhot_dic() {
@@ -37,7 +40,8 @@ function douyinhot_dic() {
             });
     });
 }
-douyinhot_dic()
+// 调用douyinhot_dic函数，获取names列表
+douyinhot_dic() 
     .then(names => {
     //   console.log(names[0]);
     search_words = names;
@@ -58,29 +62,11 @@ let menu2 = GM_registerMenuCommand('停止', function () {
     GM_setValue('Cnt', max_rewards + 10); // 将计数器设置为超过最大搜索次数，以停止搜索
 }, 'o');
 
-// 自动将字符串中的字符进行替换
-function AutoStrTrans(st) {
-    let yStr = st; // 原字符串
-    let rStr = ""; // 插入的混淆字符，可以自定义自己的混淆字符串
-    let zStr = ""; // 结果字符串
-    let prePo = 0;
-    for (let i = 0; i < yStr.length;) {
-        let step = parseInt(Math.random() * 5) + 1; // 随机生成步长
-        if (i > 0) {
-            zStr = zStr + yStr.substr(prePo, i - prePo) + rStr; // 将插入字符插入到相应位置
-            prePo = i;
-        }
-        i = i + step;
-    }
-    if (prePo < yStr.length) {
-        zStr = zStr + yStr.substr(prePo, yStr.length - prePo); // 将剩余部分添加到结果字符串中
-    }
-    return zStr;
-}
 
 function exec() {
     // 生成随机延迟时间
-    let randomDelay = Math.floor(Math.random() * 10000) + 3000; // 3000 毫秒 = 3 秒, 10000 毫秒 = 10 秒
+    let randomDelay = Math.floor(Math.random() * 7000) + 1000; // 1000 毫秒 = 1 秒, 7000 毫秒 = 7 秒
+    let randomString = Math.random().toString(36).substr(2, 4).toUpperCase(); //生成4个长度的随机字符串
     'use strict';
 
     // 检查计数器的值，若为空则设置为超过最大搜索次数
@@ -96,8 +82,7 @@ function exec() {
         setTimeout(function () {
             GM_setValue('Cnt', GM_getValue('Cnt') + 1); // 将计数器加1
             let nowtxt = search_words[GM_getValue('Cnt')]; // 获取当前搜索词
-            nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
-            location.href = "https://www.bing.com/search?q=" + encodeURI(nowtxt); // 在Bing搜索引擎中搜索
+            location.href = "https://www.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString; // 在Bing搜索引擎中搜索
         }, randomDelay);
     }
 
@@ -108,8 +93,7 @@ function exec() {
         setTimeout(function () {
             GM_setValue('Cnt', GM_getValue('Cnt') + 1); // 将计数器加1
             let nowtxt = search_words[GM_getValue('Cnt')]; // 获取当前搜索词
-            nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
-            location.href = "https://cn.bing.com/search?q=" + encodeURI(nowtxt); // 在Bing搜索引擎中搜索
+            location.href = "https://cn.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString; // 在Bing搜索引擎中搜索
         }, randomDelay);
     }
 };
