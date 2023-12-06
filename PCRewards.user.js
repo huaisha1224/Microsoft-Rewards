@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         Microsoft Bing Rewards每日任务脚本
-// @version      V1.0.7
-// @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音热门词,避免使用同样的搜索词被封号。
+// @version      V1.0.9
+// @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音/微博/哔哩哔哩/百度热门词,避免使用同样的搜索词被封号。
+// @note         更新于 2023年12月06日
 // @author       怀沙2049
 // @match        https://www.bing.com/*
 // @match        https://cn.bing.com/*
@@ -18,14 +19,16 @@
 // @namespace    https://greasyfork.org/zh-CN/scripts/477107
 // ==/UserScript==
 
-var max_rewards = 35; //重复执行的次数
-var search_words = []; //搜索词
+var max_rewards = 50; /*重复执行的次数*/
+var search_words=[]; //搜索词
+//{weibohot}微博热搜榜/{bilihot}哔哩热搜榜/{douyinhot}抖音热搜榜/{zhihuhot}知乎热搜榜/{baiduhot}百度热搜榜
+var keywords_source = "weibohot";
 
 //获取抖音热门搜索词用来作为关键词
 function douyinhot_dic() {
     return new Promise((resolve, reject) => {
         // 发送GET请求到指定URL
-        fetch("https://tenapi.cn/v2/douyinhot")
+        fetch("https://tenapi.cn/v2/"+ keywords_source)
             .then(response => response.json()) // 将返回的响应转换为JSON格式
             .then(data => {
                 // 提取每个元素的name属性值
@@ -78,10 +81,23 @@ function AutoStrTrans(st) {
     return zStr;
 }
 
+// 生成指定长度的包含大写字母、小写字母和数字的随机字符串
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+      // 从字符集中随机选择字符，并拼接到结果字符串中
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 function exec() {
     // 生成随机延迟时间
-    let randomDelay = Math.floor(Math.random() * 7000) + 1000; // 1000 毫秒 = 1 秒, 7000 毫秒 = 7 秒
-    let randomString = Math.random().toString(36).substr(2, 4).toUpperCase(); //生成4个长度的随机字符串
+    let randomDelay = Math.floor(Math.random() * 20000) + 10000; // 10000 毫秒 = 10 秒
+    let randomString = generateRandomString(4); //生成4个长度的随机字符串
+    let randomCvid = generateRandomString(32); //生成32位长度的cvid
     'use strict';
 
     // 检查计数器的值，若为空则设置为超过最大搜索次数
@@ -98,7 +114,7 @@ function exec() {
             GM_setValue('Cnt', GM_getValue('Cnt') + 1); // 将计数器加1
             let nowtxt = search_words[GM_getValue('Cnt')]; // 获取当前搜索词
             nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
-            location.href = "https://www.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString; // 在Bing搜索引擎中搜索
+            location.href = "https://www.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString + "&cvid=" + randomCvid; // 在Bing搜索引擎中搜索
         }, randomDelay);
     }
 
@@ -110,7 +126,7 @@ function exec() {
             GM_setValue('Cnt', GM_getValue('Cnt') + 1); // 将计数器加1
             let nowtxt = search_words[GM_getValue('Cnt')]; // 获取当前搜索词
             nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
-            location.href = "https://cn.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString; // 在Bing搜索引擎中搜索
+            location.href = "https://cn.bing.com/search?q=" + encodeURI(nowtxt) + "&form=" + randomString + "&cvid=" + randomCvid; // 在Bing搜索引擎中搜索
         }, randomDelay);
     }
 };
