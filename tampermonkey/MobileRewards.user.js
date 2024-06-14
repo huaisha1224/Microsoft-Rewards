@@ -71,16 +71,7 @@ async function douyinhot_dic() {
     console.error('所有搜索词来源请求失败');
     return default_search_words; // 返回默认搜索词列表
 }
-// 调用douyinhot_dic函数，获取names列表
-douyinhot_dic()
-    .then(names => {
-        //   console.log(names[0]);
-        search_words = names;
-        exec()
-    })
-    .catch(error => {
-        console.error(error);
-    });
+
 
 // 定义菜单命令：开始
 let menu1 = GM_registerMenuCommand('开始', function () {
@@ -106,7 +97,7 @@ function generateRandomString(length) {
     return result;
 }
 
-function exec() {
+async function exec() {
     // 生成随机延迟时间
     let randomDelay = Math.floor(Math.random() * 20000) + 10000; // 10000 毫秒 = 10 秒
     let randomString = generateRandomString(4); //生成4个长度的随机字符串
@@ -120,7 +111,10 @@ function exec() {
 
     // 获取当前搜索次数
     let currentSearchCount = GM_getValue('Cnt');
-
+    // 如果当前次数小于最大次数,才获取搜索词条
+    if(currentSearchCount <= max_rewards){
+        search_words = await douyinhot_dic()
+    }
     // 根据计数器的值选择搜索引擎
     if (currentSearchCount <= max_rewards / 2) {
         let tt = document.getElementsByTagName("title")[0];
@@ -160,3 +154,7 @@ function exec() {
         }, randomDelay);
     }
 }
+//页面加载完成后3秒再执行,避免部分情况下报错
+setTimeout(()=>{
+    exec()
+},3000)
