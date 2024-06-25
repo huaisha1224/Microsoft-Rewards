@@ -19,11 +19,21 @@
 // @namespace    https://greasyfork.org/zh-CN/scripts/477107
 // ==/UserScript==
 
+//自动判断是否为手机
+var is_phone = /Mobi|Android|iPhone/i.test(navigator.userAgent)
 
 var auto_start = true //搜索计数是否每天自动清零 (是否自动启动,需要手动刷新网页)
-var max_rewards = 40; //重复执行的次数
+
+// 手机端23次可得60分,电脑端33次90分
+var max_rewards
+if(is_phone){
+    max_rewards = 24; //重复执行的次数 
+}else{
+    max_rewards = 34; //重复执行的次数
+}
+
 //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
-var pause_time = 6; // 暂停时长建议为10分钟（600000毫秒=10分钟）
+var pause_time = 60000; // 暂停时长建议为10分钟（600000毫秒=10分钟）
 var search_words = []; //搜索词
 
 //默认搜索词，热门搜索词请求失败时使用
@@ -192,7 +202,10 @@ async function exec() {
         setTimeout(function () {
             GM_setValue('Cnt', currentSearchCount + 1); // 将计数器加1
             let nowtxt = search_words[currentSearchCount]; // 获取当前搜索词
-            nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
+
+            if(!is_phone){
+                nowtxt = AutoStrTrans(nowtxt); // 如果不是手机端,对搜索词进行替换
+            }
 
             // 检查是否需要暂停
             if ((currentSearchCount + 1) % 5 === 0) {
@@ -211,7 +224,9 @@ async function exec() {
         setTimeout(function () {
             GM_setValue('Cnt', currentSearchCount + 1); // 将计数器加1
             let nowtxt = search_words[currentSearchCount]; // 获取当前搜索词
-            nowtxt = AutoStrTrans(nowtxt); // 对搜索词进行替换
+            if(!is_phone){
+                nowtxt = AutoStrTrans(nowtxt); // 如果不是手机端,对搜索词进行替换
+            }
 
             // 检查是否需要暂停
             if ((currentSearchCount + 1) % 5 === 0) {
