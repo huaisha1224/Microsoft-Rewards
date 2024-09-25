@@ -1,75 +1,60 @@
 // ==UserScript==
 // @name         移动端微软Rewards每日任务脚本
-// @version      2024.6.7
-// @description  超市卡，加油卡，苹果卡，电影卡通通都有。
+// @version      2024.9.10
+// @description  盒马卡，加油卡，电影卡，天猫卡，山姆卡通通都有
 // @author       怀沙2049
-// @match        https://www.bing.com/*
-// @match        https://cn.bing.com/*
+// @match        https://*.bing.com/*
 // @license      GNU GPLv3
 // @icon         https://www.bing.com/favicon.ico
-// @connect      tenapi.cn
+// @connect      gumengya.com
 // @run-at       document-end
-// @note         更新于 2024年6月7日
-// @supportURL   https://greasyfork.org/zh-CN/users/1192640-huaisha1224
-// @homepageURL  https://greasyfork.org/zh-CN/users/1192640-huaisha1224
+// @note         更新于 2024年9月10日
+// @supportURL   https://greasyfork.org/zh-CN/users/1192640
+// @homepageURL  https://greasyfork.org/zh-CN/users/1192640
 // @grant        GM_registerMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_openInTab
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_xmlhttpRequest
-// @namespace    https://greasyfork.org/zh-CN/users/1192640-huaisha1224
+// @namespace    https://greasyfork.org/zh-CN/users/1192640
 // ==/UserScript==
 
 var max_rewards = 30; //重复执行的次数
 //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
 var pause_time = 6; // 暂停时长建议为10分钟（600000毫秒=10分钟）
 var search_words = []; //搜索词
-
 var default_search_words = ["盛年不重来，一日难再晨", "千里之行，始于足下", "少年易学老难成，一寸光阴不可轻", "敏而好学，不耻下问", "海内存知已，天涯若比邻", "三人行，必有我师焉",
     "莫愁前路无知已，天下谁人不识君", "人生贵相知，何用金与钱", "天生我材必有用", "海纳百川有容乃大；壁立千仞无欲则刚", "穷则独善其身，达则兼济天下", "读书破万卷，下笔如有神",
     "学而不思则罔，思而不学则殆", "一年之计在于春，一日之计在于晨", "莫等闲，白了少年头，空悲切", "少壮不努力，老大徒伤悲", "一寸光阴一寸金，寸金难买寸光阴", "近朱者赤，近墨者黑",
     "吾生也有涯，而知也无涯", "纸上得来终觉浅，绝知此事要躬行", "学无止境", "己所不欲，勿施于人", "天将降大任于斯人也", "鞠躬尽瘁，死而后已", "书到用时方恨少", "天下兴亡，匹夫有责",
     "人无远虑，必有近忧", "为中华之崛起而读书", "一日无书，百事荒废", "岂能尽如人意，但求无愧我心", "人生自古谁无死，留取丹心照汗青", "吾生也有涯，而知也无涯", "生于忧患，死于安乐"]
+//{weibohot}微博热搜榜/{bilihot}哔哩热搜榜/{douyinhot}抖音热搜榜/{zhihuhot}知乎热搜榜/{baiduhot}百度热搜榜
 
-
-//{weibohot}微博热搜榜//{douyinhot}抖音热搜榜/{zhihuhot}知乎热搜榜/{baiduhot}百度热搜榜/{toutiaohot}今日头条热搜榜/
-var keywords_source = ['douyinhot','zhihuhot','baiduhot','toutiaohot'];
+var keywords_source = ['ZhiHuHot','WeiBoHot','TouTiaoHot','DouYinHot', 'BaiduHot'];
 var random_keywords_source = keywords_source[Math.floor(Math.random() * keywords_source.length)]
-var current_source_index = 0; // 当前搜索词来源的索引
-
-/**
- * 尝试从多个搜索词来源获取搜索词，如果所有来源都失败，则返回默认搜索词。
- * @returns {Promise<string[]>} 返回搜索到的name属性值列表或默认搜索词列表
- */
-async function douyinhot_dic() {
-    while (current_source_index < keywords_source.length) {
-        const source = keywords_source[current_source_index]; // 获取当前搜索词来源
-        try {
-            const response = await fetch("https://tenapi.cn/v2/" + source); // 发起网络请求
-            if (!response.ok) {
-                throw new Error('HTTP error! status: ' + response.status); // 如果响应状态不是OK，则抛出错误
-            }
-            const data = await response.json(); // 解析响应内容为JSON
-            
-            if (data.data.some(item => item)) {
-                // 如果数据中存在有效项
-                // 提取每个元素的name属性值
-                const names = data.data.map(item => item.name);
-                return names; // 返回搜索到的name属性值列表
-            }
-        } catch (error) {
-            // 当前来源请求失败，记录错误并尝试下一个来源
-            console.error('搜索词来源请求失败:', error);
-        }
-        
-        // 尝试下一个搜索词来源
-        current_source_index++;
-    }
-    
-    // 所有搜索词来源都已尝试且失败
-    console.error('所有搜索词来源请求失败');
-    return default_search_words; // 返回默认搜索词列表
+//每次运行时随机获取一个热门搜索词来源用来作为关键词
+function douyinhot_dic() {
+    return new Promise((resolve, reject) => {
+        // 发送GET请求到指定URL
+        fetch("https://api.gumengya.com/Api/" + random_keywords_source)
+            .then(response => response.json()) // 将返回的响应转换为JSON格式
+            .then(data => {
+                if (data.data.some(item => item)) {
+                    // 提取每个元素的name属性值
+                    const names = data.data.map(item => item.title);
+                    resolve(names); // 将name属性值作为Promise对象的结果返回
+                } else {
+                    //如果为空使用默认搜索词
+                    resolve(default_search_words)
+                }
+            })
+            .catch(error => {
+                // 如果请求失败，则返回默认搜索词
+                resolve(default_search_words)
+                reject(error); // 将错误信息作为Promise对象的错误返回
+            });
+    });
 }
 // 调用douyinhot_dic函数，获取names列表
 douyinhot_dic()
