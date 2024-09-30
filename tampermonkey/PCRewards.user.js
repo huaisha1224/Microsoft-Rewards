@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Microsoft Bing Rewards每日任务脚本
-// @version      V3.0.3
+// @version      V3.0.4
 // @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音/微博/哔哩哔哩/百度/头条热门词,避免使用同样的搜索词被封号。
-// @note         更新于 2024年9月29日
+// @note         更新于 2024年9月30日
 // @author       怀沙2049
 // @match        https://*.bing.com/*
 // @license      GNU GPLv3
@@ -135,12 +135,11 @@ function exec() {
 
     // 获取当前搜索次数
     let currentSearchCount = GM_getValue('Cnt');
-    smoothScrollToBottom(); // 添加执行滚动页面到底部的操作
     // 根据计数器的值选择搜索引擎
     if (currentSearchCount <= max_rewards / 2) {
         let tt = document.getElementsByTagName("title")[0];
         tt.innerHTML = "[" + currentSearchCount + " / " + max_rewards + "] " + tt.innerHTML; // 在标题中显示当前搜索次数
-
+        smoothScrollToBottom(); // 添加执行滚动页面到底部的操作
         GM_setValue('Cnt', currentSearchCount + 1); // 将计数器加1
         setTimeout(function () {
             let nowtxt = search_words[currentSearchCount]; // 获取当前搜索词
@@ -157,6 +156,7 @@ function exec() {
     } else if (currentSearchCount > max_rewards / 2 && currentSearchCount < max_rewards) {
         let tt = document.getElementsByTagName("title")[0];
         tt.innerHTML = "[" + currentSearchCount + " / " + max_rewards + "] " + tt.innerHTML; // 在标题中显示当前搜索次数
+        smoothScrollToBottom(); // 添加执行滚动页面到底部的操作
         GM_setValue('Cnt', currentSearchCount + 1); // 将计数器加1
 
         setTimeout(function () {
