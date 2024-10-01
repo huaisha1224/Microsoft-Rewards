@@ -4,6 +4,7 @@
 // @description  盒马卡，加油卡，电影卡，天猫卡，山姆卡通通都有
 // @author       怀沙2049
 // @match        https://*.bing.com/*
+// @exclude      https://rewards.bing.com/*
 // @license      GNU GPLv3
 // @icon         https://www.bing.com/favicon.ico
 // @connect      gumengya.com
