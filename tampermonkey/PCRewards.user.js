@@ -5,6 +5,7 @@
 // @note         更新于 2024年9月30日
 // @author       怀沙2049
 // @match        https://*.bing.com/*
+// @exclude      https://rewards.bing.com/*
 // @license      GNU GPLv3
 // @icon         https://www.bing.com/favicon.ico
 // @connect      gumengya.com
