@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Microsoft Bing Rewards每日任务脚本
-// @version      V3.0.4
+// @version      V3.1.0
 // @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音/微博/哔哩哔哩/百度/头条热门词,避免使用同样的搜索词被封号。
-// @note         更新于 2024年9月30日
+// @note         更新于 2024年12月13日
 // @author       怀沙2049
 // @match        https://*.bing.com/*
 // @exclude      https://rewards.bing.com/*
@@ -23,6 +23,9 @@ var max_rewards = 40; //重复执行的次数
 //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
 var pause_time = 9; // 暂停时长建议为16分钟,也就是960000(60000毫秒=1分钟)
 var search_words = []; //搜索词
+var appkey = "45e7f4b7b70aea2ca2053b78bf65fd2c";//从api.gumengya.com网站申请的热门词接口APIKEY
+var Hot_words_apis = "https://api.gumengya.com/Api/";// 故梦热门词API接口网站
+
 
 //默认搜索词，热门搜索词请求失败时使用
 var default_search_words = ["盛年不重来，一日难再晨", "千里之行，始于足下", "少年易学老难成，一寸光阴不可轻", "敏而好学，不耻下问", "海内存知已，天涯若比邻", "三人行，必有我师焉",
@@ -33,7 +36,7 @@ var default_search_words = ["盛年不重来，一日难再晨", "千里之行�
     "言必信，行必果", "读书破万卷，下笔如有神", "夫君子之行，静以修身，俭以养德", "老骥伏枥，志在千里", "一日不读书，胸臆无佳想", "王侯将相宁有种乎", "淡泊以明志。宁静而致远,", "卧龙跃马终黄土"]
 //{weibohot}微博热搜榜//{douyinhot}抖音热搜榜/{zhihuhot}知乎热搜榜/{baiduhot}百度热搜榜/{toutiaohot}今日头条热搜榜/
 var keywords_source = ['BaiduHot', 'TouTiaoHot', 'DouYinHot', 'WeiBoHot'];
-var random_keywords_source = keywords_source[Math.floor(Math.random() * keywords_source.length)]
+var random_keywords_source = keywords_source[Math.floor(Math.random() * keywords_source.length)];
 var current_source_index = 0; // 当前搜索词来源的索引
 
 /**
@@ -43,8 +46,15 @@ var current_source_index = 0; // 当前搜索词来源的索引
 async function douyinhot_dic() {
     while (current_source_index < keywords_source.length) {
         const source = keywords_source[current_source_index]; // 获取当前搜索词来源
+        let url;        
+        //根据 appkey 是否为空来决定如何构建 URL地址,如果appkey为空,则直接请求接口地址
+        if (appkey) {
+            url = Hot_words_apis + source + "?format=json&appkey=" + appkey;//有appkey则添加appkey参数
+        } else {    
+            url = Hot_words_apis + source;//无appkey则直接请求接口地址
+        }
         try {
-            const response = await fetch("https://api.gumengya.com/Api/" + source); // 发起网络请求
+            const response = await fetch(url); // 发起网络请求
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status); // 如果响应状态不是OK，则抛出错误
             }
@@ -69,6 +79,8 @@ async function douyinhot_dic() {
     console.error('所有搜索词来源请求失败');
     return default_search_words; // 返回默认搜索词列表
 }
+
+// 执行搜索
 douyinhot_dic()
     .then(names => {
         //   console.log(names[0]);
