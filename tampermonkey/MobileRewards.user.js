@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         移动端微软Rewards每日任务脚本
-// @version      2024.12.24
+// @version      2025.2.27
 // @description  盒马卡，加油卡，电影卡，天猫卡，山姆卡通通都有
 // @author       怀沙2049
 // @match        https://*.bing.com/*
@@ -8,7 +8,7 @@
 // @icon         https://www.bing.com/favicon.ico
 // @connect      gumengya.com
 // @run-at       document-end
-// @note         更新于 2024年12月24日
+// @note         更新于 2025年2月27日
 // @supportURL   https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // @homepageURL  https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // @grant        GM_registerMenuCommand
@@ -24,8 +24,8 @@ var max_rewards = 30; //重复执行的次数
 //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
 var pause_time = 9; // 暂停时长建议为16分钟,也就是960000(60000毫秒=1分钟)
 var search_words = []; //搜索词
-var appkey = "45e7f4b7b70aea2ca2053b78bf65fd2c";//从api.gumengya.com网站申请的热门词接口APIKEY
-var Hot_words_apis = "https://api.gumengya.com/Api/";// 故梦热门词API接口网站
+var appkey = "";// 从https://www.gmya.net/api 网站申请的热门词接口APIKEY
+var Hot_words_apis = "https://api.gmya.net/Api/";// 故梦热门词API接口网站
 
 
 var default_search_words = ["盛年不重来，一日难再晨", "千里之行，始于足下", "少年易学老难成，一寸光阴不可轻", "敏而好学，不耻下问", "海内存知已，天涯若比邻", "三人行，必有我师焉",

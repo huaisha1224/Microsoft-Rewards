@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Microsoft Bing Rewards每日任务脚本
-// @version      V3.1.0
+// @version      V3.1.1
 // @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音/微博/哔哩哔哩/百度/头条热门词,避免使用同样的搜索词被封号。
-// @note         更新于 2024年12月13日
+// @note         更新于 2025年2月27日
 // @author       怀沙2049
 // @match        https://*.bing.com/*
 // @exclude      https://rewards.bing.com/*
@@ -23,8 +23,8 @@ var max_rewards = 40; //重复执行的次数
 //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
 var pause_time = 9; // 暂停时长建议为16分钟,也就是960000(60000毫秒=1分钟)
 var search_words = []; //搜索词
-var appkey = "45e7f4b7b70aea2ca2053b78bf65fd2c";//从api.gumengya.com网站申请的热门词接口APIKEY
-var Hot_words_apis = "https://api.gumengya.com/Api/";// 故梦热门词API接口网站
+var appkey = "";//从https://www.gmya.net/api 网站申请的热门词接口APIKEY
+var Hot_words_apis = "https://api.gmya.net/Api/";// 故梦热门词API接口网站
 
 
 //默认搜索词，热门搜索词请求失败时使用
