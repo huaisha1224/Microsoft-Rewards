@@ -85,7 +85,21 @@ douyinhot_dic()
     .then(names => {
         //   console.log(names[0]);
         search_words = names;
-        exec()
+        // --- 无人值守的判断逻辑 ---
+        if (unattendedMode) {
+            const today = new Date().toISOString().slice(0, 10);
+            const lastRunDate = GM_getValue('lastRunDate', null);
+            if (today !== lastRunDate) {
+                console.log('[无人值守模式] 新的一天，自动触发“开始”操作。');
+                GM_setValue('lastRunDate', today);
+                // 自动执行与“开始”按钮完全相同的操作
+                GM_setValue('Cnt', 0);
+                location.href = "https://www.bing.com/?br_msg=Please-Wait";
+                return; // 终止当前页面的后续脚本执行，因为页面将刷新
+            }
+        }
+        // 如果不满足自动开始的条件，则正常执行
+        exec();
     })
     .catch(error => {
         console.error(error);
@@ -101,6 +115,37 @@ let menu1 = GM_registerMenuCommand('开始', function () {
 let menu2 = GM_registerMenuCommand('停止', function () {
     GM_setValue('Cnt', max_rewards + 10); // 将计数器设置为超过最大搜索次数，以停止搜索
 }, 'o');
+
+// --- 定义菜单命令：无人值守开关 ---
+const unattendedMode = GM_getValue('unattendedModeEnabled', false);
+let switchCommandText = unattendedMode ? '关闭无人值守' : '开启无人值守';
+GM_registerMenuCommand(switchCommandText, function() {
+    const newState = !unattendedMode;
+    GM_setValue('unattendedModeEnabled', newState);
+    alert(`无人值守模式已${newState ? '开启' : '关闭'}。\n页面将刷新以应用设置。`);
+    location.reload();
+});
+
+// --- 当天的任务完成后，启动定时哨兵，检查第二天的到来 ---
+// 此变量确保哨兵只启动一次
+let isSentinelRunning = false;
+function scheduleNextDayCheck() {
+    if (isSentinelRunning) return; // 如果哨兵已在运行，则不再重复启动
+    isSentinelRunning = true;
+
+    // 设置一个定时器，每60分钟检查一次日期
+    console.log(`[无人值守模式] 今日任务已完成。已启动后台定时器，每60分钟检查一次日期...`);
+    setInterval(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const lastRunDate = GM_getValue('lastRunDate', null);
+        if (today !== lastRunDate) {
+            console.log('[无人值守模式] 定时器检测到新的一天，将自动重启任务！');
+            // 找到了新的一天，执行与“开始”按钮完全相同的操作
+            GM_setValue('Cnt', 0);
+            location.href = "https://www.bing.com/?br_msg=Please-Wait";
+        }
+    }, 3600000); // 3600000毫秒 = 60分钟
+}
 
 // 自动将字符串中的字符进行替换
 function AutoStrTrans(st) {
@@ -148,6 +193,17 @@ function exec() {
 
     // 获取当前搜索次数
     let currentSearchCount = GM_getValue('Cnt');
+
+    // --- 无人值守的任务完成判断 ---
+    if (currentSearchCount >= max_rewards) {
+        if (unattendedMode) {
+            // 如果任务已完成，并且是无人值守模式，则启动哨兵
+            scheduleNextDayCheck();
+        }
+        // 无论哪种模式，任务完成了就停止后续操作
+        return;
+    }
+
     // 根据计数器的值选择搜索引擎
     if (currentSearchCount <= max_rewards / 2) {
         let tt = document.getElementsByTagName("title")[0];
