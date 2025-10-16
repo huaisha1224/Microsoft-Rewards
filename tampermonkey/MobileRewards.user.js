@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         移动端微软Rewards每日任务脚本
-// @version      2025.2.27
+// @version      2025.10.16
 // @description  盒马卡，加油卡，电影卡，天猫卡，山姆卡通通都有
 // @author       怀沙2049
 // @match        https://*.bing.com/*
@@ -8,7 +8,7 @@
 // @icon         https://www.bing.com/favicon.ico
 // @connect      gumengya.com
 // @run-at       document-end
-// @note         更新于 2025年2月27日
+// @note         更新于 2025年10月16日
 // @supportURL   https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // @homepageURL  https://greasyfork.org/zh-CN/users/1192640-huaisha1224
 // @grant        GM_registerMenuCommand
@@ -107,7 +107,7 @@ function generateRandomString(length) {
 
 function exec() {
     // 生成随机延迟时间
-    let randomDelay = Math.floor(Math.random() * 20000) + 10000; // 生成10秒到30秒之间的随机数
+    let randomDelay = Math.floor(Math.random() * 60000) + 20000; // 生成10秒到30秒之间的随机数
     let randomString = generateRandomString(4); //生成4个长度的随机字符串
     let randomCvid = generateRandomString(32); //生成32位长度的cvid
     'use strict';

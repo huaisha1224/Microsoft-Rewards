@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Microsoft Bing Rewards每日任务脚本
-// @version      V3.1.1
+// @version      V3.1.3
 // @description  自动完成微软Rewards每日搜索任务,每次运行时获取抖音/微博/哔哩哔哩/百度/头条热门词,避免使用同样的搜索词被封号。
-// @note         更新于 2025年2月27日
+// @note         更新于 2025年10月16日
 // @author       怀沙2049
 // @match        https://*.bing.com/*
 // @exclude      https://rewards.bing.com/*
@@ -136,7 +136,7 @@ function generateRandomString(length) {
 
 function exec() {
     // 生成随机延迟时间
-    let randomDelay = Math.floor(Math.random() * 20000) + 10000; // 生成10秒到30秒之间的随机数
+    let randomDelay = Math.floor(Math.random() * 60000) + 20000; // 生成10秒到30秒之间的随机数
     let randomString = generateRandomString(4); //生成4个长度的随机字符串
     let randomCvid = generateRandomString(32); //生成32位长度的cvid
     'use strict';
