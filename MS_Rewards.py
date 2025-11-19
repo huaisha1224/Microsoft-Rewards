@@ -37,7 +37,7 @@ def Chrome_Rewards(url):
     for x in data:
         # sleep(2)
         # 定位搜索框
-        search_box = driver.find_element_by_name("q")
+        search_box = driver.find_element(By.NAME, "q")
         # 传入搜索关键词并搜索
         search_box.send_keys(x)
         # 等待加载完成
