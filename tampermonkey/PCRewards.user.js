@@ -36,7 +36,7 @@
     //每执行4次搜索后插入暂停时间,解决账号被监控不增加积分的问题
     const PAUSE_TIME = GM_getValue('ms_rewards_pause_time', 6); // 如果有问题可以修改这里的暂停时长，建议16分钟,也就是960000(60000毫秒=1分钟)
     const REWARDS_COOLDOWN = 1800000; // rewards页面冷却时间（30分钟）
-    
+
     // API Key配置
     //从https://www.gmya.net/api 网站申请的热门词接口APIKEY
     let appkey = GM_getValue('ms_rewards_appkey', ''); // 这里输入你的API Key
@@ -56,6 +56,26 @@
 
     // ==================== 获取热门搜索词 ====================
     function getHotWords() {
+        const CACHE_TTL = 12*3600*1000
+        const cache_key = 'cache_' + random_keywords_source
+        var cache = GM_getValue(cache_key, null)
+        if(cache) {
+            const timestr = new Date(cache.timestamp).toLocaleString()
+            if(Date.now() - cache.timestamp <= CACHE_TTL) {
+                console.log(`✅ 使用缓存 ${random_keywords_source}. 缓存时间: ${timestr}, 内容: ${cache.data}`)
+                return Promise.resolve(cache.data)
+            } else {
+                console.log(`⏰ 缓存过期，时间: ${timestr}`)
+            }
+        }
+        function backup() {
+            // api失效时的备份
+            if(cache && cache.data)
+                return cache.data
+            else
+                return default_search_words
+        }
+
         let url = Hot_words_apis + random_keywords_source;
         if (appkey) {
             url += '?format=json&appkey=' + appkey;
@@ -74,15 +94,18 @@
                     if (data.data && data.data.some(item => item)) {
                         const names = data.data.map(item => item.title);
                         console.log('获取到的热门搜索词:', names);
+                        GM_setValue(cache_key, {
+                            data: names, timestamp: Date.now()
+                        })
                         resolve(names);
                     } else {
                         console.log('API返回数据格式不正确，使用默认搜索词');
-                        resolve(default_search_words);
+                        resolve(backup());
                     }
                 })
                 .catch(error => {
                     console.error('获取热门搜索词失败:', error);
-                    resolve(default_search_words);
+                    resolve(backup());
                 });
         });
     }
@@ -138,28 +161,28 @@
             // 搜索任务完成后，直接打开rewards页面
             setTimeout(() => {
                 console.log('搜索任务完成，准备打开rewards页面...');
-                
+
                 const REWARDS_OPENED_AFTER_SEARCH = 'ms_rewards_opened_after_search';
-                
+
                 // 检查是否已经打开过
                 const sessionOpened = sessionStorage.getItem(REWARDS_OPENED_AFTER_SEARCH);
                 if (sessionOpened === 'true') {
                     console.log('⚠️ 已打开过 rewards 页面，跳过');
                     return;
                 }
-                
+
                 // 设置标记
                 sessionStorage.setItem(REWARDS_OPENED_AFTER_SEARCH, 'true');
                 localStorage.setItem(REWARDS_OPENED_AFTER_SEARCH, 'true');
-                
+
                 // 打开 rewards 页面
                 const rewardsUrlWithFlag = REWARDS_URL + '?auto_opened=true&timestamp=' + Date.now();
                 window.open(rewardsUrlWithFlag, '_blank');
                 console.log('✓ 已打开 rewards 页面');
-                
+
                 // 重置搜索完成标记
                 GM_setValue('search_completed', 'false');
-                
+
                 // 10分钟后清除 localStorage 备份
                 setTimeout(() => {
                     localStorage.removeItem(REWARDS_OPENED_AFTER_SEARCH);
@@ -172,31 +195,31 @@
     function handleRewardsPage() {
         console.log('✓ 已在rewards页面，开始查找每日活动...');
         console.log('当前URL:', window.location.href);
-        
+
         // 检查是否已经执行过每日活动点击
         const REWARDS_ACTIVITY_CLICKED_KEY = 'ms_rewards_activity_clicked';
         const activityClicked = localStorage.getItem(REWARDS_ACTIVITY_CLICKED_KEY);
         const now = Date.now();
-        
+
         // 检查 URL 中是否有自动打开的标记（说明是从搜索任务跳转过来的）
         const urlParams = new URLSearchParams(window.location.search);
         const isAutoOpened = urlParams.get('auto_opened') === 'true';
-        
+
         console.log('每日活动标记状态:', activityClicked ? '已设置' : '未设置');
         console.log('是否自动打开:', isAutoOpened ? '是' : '否');
-        
+
         if (isAutoOpened) {
             console.log('🔄 检测到这是从搜索任务自动打开的，清除旧的每日活动标记');
             // 清除旧的标记，允许重新执行每日活动
             localStorage.removeItem(REWARDS_ACTIVITY_CLICKED_KEY);
         }
-        
+
         // 如果今天已经执行过，则不再重复执行
         if (activityClicked && !isAutoOpened) {
             const clickTime = parseInt(activityClicked);
             const today = new Date();
             const lastClickDate = new Date(clickTime);
-            
+
             // 检查是否是同一天
             if (today.toDateString() === lastClickDate.toDateString()) {
                 console.log('✅ 今日已执行过每日活动点击，跳过');
@@ -208,7 +231,7 @@
                 localStorage.removeItem(REWARDS_ACTIVITY_CLICKED_KEY);
             }
         }
-        
+
         // 注意：不要在这里清除任何标记！
         console.log('✅ 准备执行每日活动点击');
 
@@ -223,8 +246,8 @@
                 const href = link.href;
                 const text = link.textContent;
 
-                if (href.includes('/search') || href.includes('quiz') || href.includes('poll') || 
-                    href.includes('challenge') || href.includes('activity') || 
+                if (href.includes('/search') || href.includes('quiz') || href.includes('poll') ||
+                    href.includes('challenge') || href.includes('activity') ||
                     text.includes('活动') || text.includes('任务') || text.includes('积分') ||
                     text.includes('喜剧') || text.includes('鲸鱼') || text.includes('美食')) {
                     potentialActivityLinks.push(link);
@@ -271,14 +294,14 @@
                     const href = link.href;
                     const text = link.textContent;
 
-                    if (href.includes('/refer') || text.includes('邀请好友') || 
+                    if (href.includes('/refer') || text.includes('邀请好友') ||
                         href.includes('/dashboard') || href.includes('/home')) {
                         return false;
                     }
 
-                    return href.includes('/search') || href.includes('quiz') || 
-                           href.includes('poll') || href.includes('challenge') || 
-                           href.includes('activity') || text.includes('活动') || 
+                    return href.includes('/search') || href.includes('quiz') ||
+                           href.includes('poll') || href.includes('challenge') ||
+                           href.includes('activity') || text.includes('活动') ||
                            text.includes('任务') || text.includes('积分');
                 });
 
@@ -298,16 +321,16 @@
             linksToClick.forEach((link, index) => {
                 setTimeout(() => {
                     console.log(`点击第 ${index+1} 个每日活动链接:`, link.href);
-                    
+
                     // 设置标记，表示这是每日活动的搜索，不是主搜索任务
                     GM_setValue('is_daily_activity', 'true');
-                    
+
                     // 如果是最后一个链接，设置执行标记
                     if (index === linksToClick.length - 1) {
                         localStorage.setItem(REWARDS_ACTIVITY_CLICKED_KEY, Date.now().toString());
                         console.log('✅ 已设置今日执行标记，避免重复执行');
                     }
-                    
+
                     link.click();
                 }, index * 1500);
             });
@@ -318,11 +341,11 @@
     // ==================== Bing主页功能 ====================
     function handleBingHomePage() {
         console.log('⚠ 在bing.com主页');
-        
+
         // 检查是否是从菜单点击“开始搜索任务”跳转过来的
         const urlParams = new URLSearchParams(window.location.search);
         const isStartSearch = urlParams.get('start_search') === 'true';
-        
+
         // 如果是，则立即跳转到第一个搜索
         if (isStartSearch) {
             console.log('🚀 检测到开始搜索任务指令，准备开始搜索...');
@@ -334,18 +357,18 @@
             }, 1000);
             return;
         }
-        
+
         // 检查搜索任务是否已完成
         const searchCompleted = GM_getValue('search_completed');
-        
+
         // ✅ 新增：检查是否已经自动打开过 rewards 页面（会话级别）
         const AUTO_OPENED_KEY = 'ms_rewards_auto_opened_session';
         const alreadyOpened = sessionStorage.getItem(AUTO_OPENED_KEY);
-        
+
         // 只有在明确标记为搜索完成且未打开过时才打开 rewards
         if (searchCompleted === 'true' && alreadyOpened !== 'true') {
             console.log('✅ 搜索任务已完成，准备打开rewards页面...');
-            
+
             const REWARDS_OPENED_AFTER_SEARCH = 'ms_rewards_opened_after_search';
 
             // ✅ 首先检查会话级别标记（本次会话是否已自动打开）
@@ -361,7 +384,7 @@
                 console.log('⚠️ sessionStorage 显示已打开过 rewards 页面，跳过');
                 return;
             }
-            
+
             // 其次检查 localStorage 备份标记
             const localOpened = localStorage.getItem(REWARDS_OPENED_AFTER_SEARCH);
             if (localOpened === 'true') {
@@ -378,12 +401,12 @@
                 const newWindow = window.open(rewardsUrlWithFlag, '_blank');
                 if (newWindow) {
                     console.log('✓ 已成功打开rewards页面');
-                    
+
                     // ✅ 设置会话标记，防止再次自动打开
                     sessionStorage.setItem(AUTO_OPENED_KEY, 'true');
                     sessionStorage.setItem(REWARDS_OPENED_AFTER_SEARCH, 'true');
                     localStorage.setItem(REWARDS_OPENED_AFTER_SEARCH, 'true');
-                    
+
                     // ✅ 重置搜索完成标记，防止下次打开 Bing 首页时再次跳转
                     GM_setValue('search_completed', 'false');
                 } else {
@@ -405,17 +428,17 @@
     // ==================== 搜索页面功能 ====================
     function handleSearchPage() {
         console.log('⚠ 在搜索页面');
-        
+
         // 检查是否是每日活动的搜索
         const isDailyActivity = GM_getValue('is_daily_activity');
-        
+
         if (isDailyActivity === 'true') {
             console.log('✅ 这是每日活动的搜索，不执行主搜索任务');
             // 清除标记
             GM_setValue('is_daily_activity', 'false');
             return;
         }
-        
+
         console.log('⚠ 执行主搜索任务');
         executeSearchTask();
     }
