@@ -1,7 +1,7 @@
 # Microsoft-Rewards
-[![version](https://img.shields.io/badge/python-3.4+-blue.svg)](https://www.python.org/download/releases/3.4.0/) 
+[![version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/) 
 [![status](https://img.shields.io/badge/status-stable-green.svg)](https://github.com/huaisha1224/Microsoft-Rewards)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](./LICENSE)
 [![star, issue](https://img.shields.io/badge/star%2C%20issue-welcome-brightgreen.svg)](https://github.com/huaisha1224/Microsoft-Rewards)
 
 赚取每日Microsoft Rewards积分的自动化解决方案
@@ -52,11 +52,45 @@
 
 
 
+## 环境要求：
+- Node.js 24+（`node -v` 确认，低于 24 会报 engine 错误）
+- Python 3.10+（仅桌面 GUI 需要，用来跑 `gui/app.py`）
+- Windows 10/11 x64（桌面 GUI 与 exe 打包为 Windows 专用，核心脚本跨平台）
+- 系统安装 Google Chrome（`config.json` 里 `browserChannel` 设为 `chrome` 时推荐，免下载 Chromium）
+
 ## 安装使用：
 
-```
-python app.py
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 配置账号（.env 已在 .gitignore 中，切勿提交）
+copy env.example .env        # Linux/macOS: cp env.example .env
+notepad .env                 # 填 ACCOUNT_1_EMAIL / ACCOUNT_1_PASSWORD / ACCOUNT_1_TOTP_SECRET
+
+# 3. 编译
+npm run build
 ```
 
-![image](https://user-images.githubusercontent.com/3378350/230837253-1132c32f-30b5-4ead-9cae-70f8209ef55b.png)
+启动桌面 GUI（推荐）：
 
+```bat
+start-gui.bat
+```
+
+> 首次使用先装 GUI 依赖：`python -m pip install customtkinter`
+
+或者用命令行直接跑：
+
+```bash
+npm start
+```
+
+## 免责声明
+- 本软件为非官方第三方工具，与 Microsoft Corporation 没有任何隶属、授权或背书关系，Microsoft / Microsoft Rewards / Bing 等名称与商标归微软所有
+- 使用自动化脚本获取 Rewards 积分可能违反 Microsoft 服务条款，存在积分被清零、账号被限制功能或永久封禁的风险，请自行判断并承担后果
+- 因使用或无法使用本软件造成的账号异常、积分损失、数据丢失或其它任何直接、间接损失，作者不承担任何责任
+- 本项目仅供学习与技术交流，请优先使用微软官方服务
+
+## License
+本仓库包含基于 [Microsoft-Rewards-Script](https://github.com/TheNetsky/Microsoft-Rewards-Script)（GPL-3.0）的衍生代码，因此同样以 GPL-3.0 发布；`tampermonkey/` 下的油猴脚本为作者原创。完整许可证见 [LICENSE](./LICENSE)。
