@@ -1,0 +1,134 @@
+{
+    "sessionPath": "sessions",
+    "browserChannel": "chromium",
+    "headless": false,
+    "clusters": 1,
+    "errorDiagnostics": false,
+    "ensureStreakProtection": true,
+    "autoClaimPunchcardRewards": false,
+    "contintueOnBotWarning": false,
+    "skipNonPointTasks": true,
+    "prewarmDesktopLogin": false,
+    "accountDelay": {
+        "min": "1min",
+        "max": "3min"
+    },
+    "workers": {
+        "doDailySet": true,
+        "doClaimBonusPoints": true,
+        "doMorePromotions": true,
+        "doPunchCards": true,
+        "doAppPromotions": true,
+        "doDesktopSearch": true,
+        "doMobileSearch": true,
+        "doBonusSearches": false,
+        "doDailyCheckIn": true,
+        "doReadToEarn": true,
+        "doActivateSearchPerk": true,
+        "doVisualSearch": false
+    },
+    "activities": {
+        "urlReward": true,
+        "searchOnBing": true
+    },
+    "searchOnBingLocalQueries": false,
+    "globalTimeout": "50sec",
+    "searchSettings": {
+        "scrollRandomResults": true,
+        "clickRandomResults": true,
+        "runOnZeroPoints": false,
+        "maxBonusSearches": 110,
+        "parallelSearching": false,
+        "clusterSearch": true,
+        "queryEngines": [
+            "china",
+            "local"
+        ],
+        "searchResultVisitTime": "20sec",
+        "searchDelay": {
+            "min": "6min",
+            "max": "12min"
+        },
+        "readDelay": {
+            "min": "6min",
+            "max": "11min"
+        },
+        "chinaApi": {
+            "appkey": ""
+        }
+    },
+    "experimental": {
+        "apiSearch": false,
+        "apiSearchOnBing": false,
+        "blockMedia": false,
+        "edgeBrowsing": false
+    },
+    "debugLogs": true,
+    "consoleLogFilter": {
+        "enabled": false,
+        "mode": "whitelist",
+        "levels": ["error", "warn"],
+        "keywords": ["starting account", "Fraud_UserWarning_BotScore_UX"],
+        "regexPatterns": []
+    },
+    "proxy": {
+        "queryEngine": false,
+        "ignoreCertificateErrors": false
+    },
+    "webhook": {
+        "discord": {
+            "enabled": false,
+            "url": ""
+        },
+        "telegram": {
+            "enabled": false,
+            "botToken": "",
+            "chatId": ""
+        },
+        "pushplus": {
+            "enabled": false,
+            "token": "",
+            "title": "Microsoft-Rewards-Script",
+            "template": "txt",
+            "channel": ""
+        },
+        "serverchan": {
+            "enabled": false,
+            "sendKey": "",
+            "title": "Microsoft-Rewards-Script"
+        },
+        "clawbot": {
+            "enabled": false,
+            "authFile": ""
+        },
+        "ntfy": {
+            "enabled": false,
+            "url": "",
+            "topic": "",
+            "token": "",
+            "title": "Microsoft-Rewards-Script",
+            "tags": ["bot", "notify"],
+            "priority": 3
+        },
+        "webhookLogFilter": {
+            "enabled": false,
+            "mode": "whitelist",
+            "levels": ["error"],
+            "keywords": ["starting account", "select number", "collected", "Fraud_UserWarning_BotScore_UX"],
+            "regexPatterns": []
+        }
+    },
+    "humanize": {
+        "enabled": false,
+        "skipWhenCompletedToday": false,
+        "quietHours": [
+            {
+                "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                "start": "12:00",
+                "end": "14:30"
+            }
+        ],
+        "searchTargetRatio": { "min": 0.85, "max": 1.0 },
+        "readToEarnArticles": { "min": 7, "max": 10 }
+    }
+}

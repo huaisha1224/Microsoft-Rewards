@@ -1,0 +1,263 @@
+import { REWARDS_BASE_URL } from '../constants/urls'
+import { type Page, type BrowserContext } from 'patchright'
+import { ClickOptions, createCursor } from 'ghost-cursor-playwright-port'
+
+import type { MicrosoftRewardsBot } from '../index'
+
+export default class BrowserUtils {
+    private bot: MicrosoftRewardsBot
+
+    constructor(bot: MicrosoftRewardsBot) {
+        this.bot = bot
+    }
+
+    async tryDismissAllMessages(page: Page): Promise<void> {
+        try {
+            const buttons = [
+                { selector: '#acceptButton', label: 'AcceptButton' },
+                { selector: '#wcpConsentBannerCtrl > * > button:first-child', label: 'Bing Cookies Accept' },
+                { selector: '.ext-secondary.ext-button', label: '"Skip for now" Button' },
+                { selector: '#iLandingViewAction', label: 'iLandingViewAction' },
+                { selector: '#iShowSkip', label: 'iShowSkip' },
+                { selector: '#iNext', label: 'iNext' },
+                { selector: '#iLooksGood', label: 'iLooksGood' },
+                { selector: '#idSIButton9', label: 'idSIButton9' },
+                { selector: '.ms-Button.ms-Button--primary', label: 'Primary Button' },
+                { selector: '.c-glyph.glyph-cancel', label: 'Mobile Welcome Button' },
+                { selector: '.maybe-later', label: 'Mobile Rewards App Banner' },
+                { selector: '#bnp_btn_accept', label: 'Bing Cookie Banner' },
+                { selector: '#reward_pivot_earn', label: 'Reward Coupon Accept' }
+            ]
+
+            const checkVisible = await Promise.allSettled(
+                buttons.map(async b => ({
+                    ...b,
+                    isVisible: await page
+                        .locator(b.selector)
+                        .isVisible()
+                        .catch(() => false)
+                }))
+            )
+
+            const visibleButtons = checkVisible
+                .filter(r => r.status === 'fulfilled' && r.value.isVisible)
+                .map(r => (r.status === 'fulfilled' ? r.value : null))
+                .filter(Boolean)
+
+            if (visibleButtons.length > 0) {
+                await Promise.allSettled(
+                    visibleButtons.map(async b => {
+                        if (b) {
+                            const clicked = await this.ghostClick(page, b.selector)
+                            if (clicked) {
+                                this.bot.logger.debug(
+                                    this.bot.isMobile,
+                                    'DISMISS-ALL-MESSAGES',
+                                    `已关闭: ${b.label}`
+                                )
+                            }
+                        }
+                    })
+                )
+                await this.bot.utils.wait(300)
+            }
+
+            const overlay = await page.$('#bnp_overlay_wrapper')
+            if (overlay) {
+                const rejected = await this.ghostClick(page, '#bnp_btn_reject, button[aria-label*="Reject" i]')
+                if (rejected) {
+                    this.bot.logger.debug(this.bot.isMobile, 'DISMISS-ALL-MESSAGES', '已关闭: Bing Overlay Reject')
+                } else {
+                    const accepted = await this.ghostClick(page, '#bnp_btn_accept')
+                    if (accepted) {
+                        this.bot.logger.debug(
+                            this.bot.isMobile,
+                            'DISMISS-ALL-MESSAGES',
+                            '已关闭: Bing Overlay Accept'
+                        )
+                    }
+                }
+                await this.bot.utils.wait(250)
+            }
+        } catch (error) {
+            this.bot.logger.warn(
+                this.bot.isMobile,
+                'DISMISS-ALL-MESSAGES',
+                `处理器错误: ${error instanceof Error ? error.message : String(error)}`
+            )
+        }
+    }
+
+    async getLatestTab(page: Page): Promise<Page> {
+        try {
+            const browser: BrowserContext = page.context()
+            const pages = browser.pages()
+
+            const newTab = pages[pages.length - 1]
+            if (!newTab) {
+                this.bot.logger.error(this.bot.isMobile, 'GET-NEW-TAB', '找不到任何标签页！')
+                throw new Error('找不到任何标签页！')
+            }
+
+            return newTab
+        } catch (error) {
+            this.bot.logger.error(
+                this.bot.isMobile,
+                'GET-NEW-TAB',
+                `无法获取最新标签页: ${error instanceof Error ? error.message : String(error)}`
+            )
+            throw error
+        }
+    }
+
+    async reloadBadPage(page: Page): Promise<boolean> {
+        try {
+            const html = await page.content().catch(() => '')
+            const isBadPage = /<body[^>]*\bclass=["'][^"']*\bneterror\b/i.test(html)
+
+            if (isBadPage) {
+                this.bot.logger.info(this.bot.isMobile, 'RELOAD-BAD-PAGE', '检测到错误页面，正在重新加载！')
+                try {
+                    await page.reload({ waitUntil: 'load' })
+                } catch {
+                    await page.reload().catch(() => {})
+                }
+                return true
+            } else {
+                return false
+            }
+        } catch (error) {
+            this.bot.logger.error(
+                this.bot.isMobile,
+                'RELOAD-BAD-PAGE',
+                `重载检查失败: ${error instanceof Error ? error.message : String(error)}`
+            )
+            return true
+        }
+    }
+
+    async closeTabs(page: Page, config = { minTabs: 1, maxTabs: 1 }): Promise<Page> {
+        try {
+            const browser = page.context()
+            const tabs = browser.pages()
+
+            this.bot.logger.debug(
+                this.bot.isMobile,
+                'SEARCH-CLOSE-TABS',
+                `发现 ${tabs.length} 个打开的标签页 (最少: ${config.minTabs}, 最多: ${config.maxTabs})`
+            )
+
+            if (config.minTabs < 1 || config.maxTabs < config.minTabs) {
+                this.bot.logger.warn(this.bot.isMobile, 'SEARCH-CLOSE-TABS', '配置无效，使用默认值')
+                config = { minTabs: 1, maxTabs: 1 }
+            }
+
+            if (tabs.length > config.maxTabs) {
+                const tabsToClose = tabs.slice(config.maxTabs)
+
+                const closeResults = await Promise.allSettled(tabsToClose.map(tab => tab.close()))
+
+                const closedCount = closeResults.filter(r => r.status === 'fulfilled').length
+                this.bot.logger.debug(
+                    this.bot.isMobile,
+                    'SEARCH-CLOSE-TABS',
+                    `已关闭 ${closedCount}/${tabsToClose.length} 个多余标签页，以达到最大值 ${config.maxTabs}`
+                )
+            } else if (tabs.length < config.minTabs) {
+                const tabsNeeded = config.minTabs - tabs.length
+                this.bot.logger.debug(
+                    this.bot.isMobile,
+                    'SEARCH-CLOSE-TABS',
+                    `正在打开 ${tabsNeeded} 个标签页，以达到最小值 ${config.minTabs}`
+                )
+
+                const newTabPromises = Array.from({ length: tabsNeeded }, async () => {
+                    try {
+                        const newPage = await browser.newPage()
+                        await newPage.goto(REWARDS_BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 })
+                        return newPage
+                    } catch (error) {
+                        this.bot.logger.warn(
+                            this.bot.isMobile,
+                            'SEARCH-CLOSE-TABS',
+                            `创建新标签页失败: ${error instanceof Error ? error.message : String(error)}`
+                        )
+                        return null
+                    }
+                })
+
+                await Promise.allSettled(newTabPromises)
+            }
+
+            const latestTab = await this.getLatestTab(page)
+            return latestTab
+        } catch (error) {
+            this.bot.logger.error(
+                this.bot.isMobile,
+                'SEARCH-CLOSE-TABS',
+                `错误: ${error instanceof Error ? error.message : String(error)}`
+            )
+            return page
+        }
+    }
+
+    async ghostClick(page: Page, selector: string, options?: ClickOptions): Promise<boolean> {
+        try {
+            this.bot.logger.debug(
+                this.bot.isMobile,
+                'GHOST-CLICK',
+                `尝试点击选择器: ${selector}，选项: ${JSON.stringify(options)}`
+            )
+
+            await page.waitForSelector(selector, { timeout: 1000 }).catch(() => {})
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cursor = createCursor(page as any)
+            await cursor.click(selector, options)
+
+            return true
+        } catch (error) {
+            this.bot.logger.warn(
+                this.bot.isMobile,
+                'GHOST-CLICK',
+                `点击 ${selector} 失败: ${error instanceof Error ? error.message : String(error)}`
+            )
+            return false
+        }
+    }
+
+    async disableFido(page: Page) {
+        const routePattern = '**/GetCredentialType.srf*'
+        await page.route(routePattern, route => {
+            try {
+                const request = route.request()
+                const postData = request.postData()
+
+                const body = postData ? JSON.parse(postData) : {}
+
+                body.isFidoSupported = false
+
+                this.bot.logger.debug(
+                    this.bot.isMobile,
+                    'DISABLE-FIDO',
+                    `已修改请求体: isFidoSupported 设为 ${body.isFidoSupported}`
+                )
+
+                route.continue({
+                    postData: JSON.stringify(body),
+                    headers: {
+                        ...request.headers(),
+                        'Content-Type': 'application/json'
+                    }
+                })
+            } catch (error) {
+                this.bot.logger.debug(
+                    this.bot.isMobile,
+                    'DISABLE-FIDO',
+                    `发生错误: ${error instanceof Error ? error.message : String(error)}`
+                )
+                route.continue()
+            }
+        })
+    }
+}

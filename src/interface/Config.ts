@@ -1,0 +1,165 @@
+export type BrowserChannel = 'chromium' | 'chrome' | 'msedge'
+
+export interface Config {
+    sessionPath: string
+    headless: boolean
+    browserChannel?: BrowserChannel
+    clusters: number
+    errorDiagnostics: boolean
+    ensureStreakProtection: boolean
+    autoClaimPunchcardRewards: boolean
+    contintueOnBotWarning: boolean
+    skipNonPointTasks: boolean
+    prewarmDesktopLogin: boolean
+    accountDelay: ConfigDelay
+    workers: ConfigWorkers
+    activities: ConfigActivities
+    searchOnBingLocalQueries: boolean
+    globalTimeout: number | string
+    searchSettings: ConfigSearchSettings
+    experimental: ConfigExperimental
+    debugLogs: boolean
+    proxy: ConfigProxy
+    consoleLogFilter: LogFilter
+    webhook: ConfigWebhook
+    humanize?: HumanizeConfig
+}
+
+export interface HumanizeConfig {
+    enabled?: boolean
+    skipWhenCompletedToday?: boolean
+    quietHours?: QuietHoursRule[]
+    searchTargetRatio?: HumanizeRange
+    readToEarnArticles?: HumanizeRange
+}
+
+export interface HumanizeRange {
+    min: number
+    max: number
+}
+
+export interface QuietHoursRule {
+    days: string[]
+    start: string
+    end: string
+}
+
+export type QueryEngine = 'china' | 'google' | 'wikipedia' | 'wikirandom' | 'hackernews' | 'reddit' | 'local'
+
+export type RssFeedSelector = 'rss' | `rss.${string}`
+export type QueryEngineEntry = QueryEngine | RssFeedSelector
+
+export interface ConfigSearchSettings {
+    scrollRandomResults: boolean
+    clickRandomResults: boolean
+    runOnZeroPoints: boolean
+    maxBonusSearches: number
+    parallelSearching: boolean
+    clusterSearch: boolean
+    queryEngines: QueryEngineEntry[]
+    searchResultVisitTime: number | string
+    searchDelay: ConfigDelay
+    readDelay: ConfigDelay
+    /**
+     * 中国热搜源（gmya.net）配置。
+     * appkey 留空走免费档（有频率限制）；填入则带 appkey 请求以解除限流。
+     */
+    chinaApi?: {
+        appkey?: string
+    }
+}
+
+export interface ConfigDelay {
+    min: number | string
+    max: number | string
+}
+
+export interface ConfigExperimental {
+    apiSearch: boolean
+    apiSearchOnBing: boolean
+    blockMedia: boolean
+    edgeBrowsing: boolean
+}
+
+export interface ConfigProxy {
+    queryEngine: boolean
+    ignoreCertificateErrors: boolean
+}
+
+export interface ConfigWorkers {
+    doDailySet: boolean
+    doMorePromotions: boolean
+    doClaimBonusPoints: boolean
+    doPunchCards: boolean
+    doAppPromotions: boolean
+    doDesktopSearch: boolean
+    doMobileSearch: boolean
+    doBonusSearches: boolean
+    doDailyCheckIn: boolean
+    doReadToEarn: boolean
+    doActivateSearchPerk: boolean
+    doVisualSearch: boolean
+}
+
+export interface ConfigActivities {
+    urlReward: boolean
+    searchOnBing: boolean
+}
+
+export interface ConfigWebhook {
+    discord?: WebhookDiscordConfig
+    ntfy?: WebhookNtfyConfig
+    telegram?: WebhookTelegramConfig
+    pushplus?: WebhookPushPlusConfig
+    serverchan?: WebhookServerChanConfig
+    clawbot?: WebhookClawBotConfig
+    webhookLogFilter: LogFilter
+}
+
+export interface LogFilter {
+    enabled: boolean
+    mode: 'whitelist' | 'blacklist'
+    levels?: Array<'debug' | 'info' | 'warn' | 'error'>
+    keywords?: string[]
+    regexPatterns?: string[]
+}
+
+export interface WebhookDiscordConfig {
+    enabled: boolean
+    url: string
+}
+
+export interface WebhookNtfyConfig {
+    enabled?: boolean
+    url: string
+    topic?: string
+    token?: string
+    title?: string
+    tags?: string[]
+    priority?: 1 | 2 | 3 | 4 | 5 // 5 highest (important)
+}
+
+export interface WebhookTelegramConfig {
+    enabled?: boolean
+    botToken: string
+    chatId: string | number
+}
+
+export interface WebhookPushPlusConfig {
+    enabled?: boolean
+    token: string
+    title?: string
+    template?: 'txt' | 'html' | 'markdown'
+    channel?: string
+}
+
+export interface WebhookServerChanConfig {
+    enabled?: boolean
+    sendKey: string
+    title?: string
+}
+
+export interface WebhookClawBotConfig {
+    enabled?: boolean
+    authFile?: string
+}

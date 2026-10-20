@@ -6,58 +6,57 @@
 
 赚取每日Microsoft Rewards积分的自动化解决方案
 
-油猴脚本解决方案
+
+
+# 说明
+本项目有2个分支
+- 一个是油猴脚本解决方案
+- 另外一个是基于开源项目Microsoft-Rewards-Script的GUI解决方案
+
+
+## 油猴脚本解决方案
+- tampermonkey目录中是油猴脚本，也可以从下面的地址安装
 - [Microsoft Bing Rewards每日任务脚本](https://greasyfork.org/zh-CN/scripts/477107)
 - [移动端微软Rewards每日任务脚本](https://greasyfork.org/zh-CN/scripts/480355)
 
+## 基于本地浏览器解决方案
+## ✨ 核心特性
 
-## 主要功能
--	通过Selenium 控制Chrome浏览器访问bing.com，完成每日的搜索任务，来获取Microsoft Rewards每日积分。
--	本项目直接操作Chrome浏览器，不需要用户提供Microsoft Rewards账户和密码，安全可靠。
+**账户管理**
+
+- ✅ 多账户支持（`.env` 中 `ACCOUNT_N_*` 环境变量，编号无需连续）
+- ✅ 会话存储与持久化（`sessions/`，含指纹持久化）
+- ✅ 2FA 支持（TOTP 自动生成并填入验证码）
+- ✅ 无密码登录支持
+- ✅ 每账户独立代理（HTTP/HTTPS/SOCKS4/SOCKS5）
+
+**自动化与控制**
+
+- ✅ 无头浏览器操作（Patchright 反检测内核）
+- ✅ 集群支持（同时多个账户）
+- ✅ 可配置任务开关
+
+**搜索与活动**
+
+- ✅ 桌面与移动搜索（配额独立跟踪，互不阻塞）
+- ✅ 每日集 / 更多促销 / 打卡 / App 活动 / 每日签到 / 阅读赚取（Read-to-Earn）
+- ✅ 搜索加成 perk 激活（"再搜 N 次得积分"）/ 视觉搜索（可选）
+- ✅ 连击保护 & 自动领取 dashboard 奖励积分
+- ✅ 模拟滚动与随机点击，降低风控风险
+
+**搜索词来源（国内推荐 china + local）**
+
+- ✅ 中国热搜（百度/头条/抖音/微博/知乎，gmya.net 聚合，多源随机 + 限流退避）
+- ✅ 本地查询词兜底（`search-queries.json` 中文词库）
+- ✅ Bing 建议聚类扩展（`clusterSearch`，每个主词扩展一组相关词再搜索）
 
 
-## 运行环境
-
-- [Python 3](https://www.python.org/)
-
-## 第三方库
-- [Selenium](https://www.selenium.dev/)
 
 ## 安装使用：
 
 ```
-pip install -r requirements.txt
+python app.py
 ```
-
--	下载安装配置Chrome浏览器驱动
-
-	在Chrome浏览器地址栏输入 'chrome://version/' 查看浏览器版本
-
--	下载对应版本的 ChromeDriver
-
-	[Chromedriver](https://chromedriver.chromium.org/downloads)
-
-
-## 更新记录
-- 【2023-02-25】提交代码
-- 【2023-02-28】添加滕王阁序作为搜索使用
-
-## 油猴脚本
-- 【2023-12-01】增加CD时间、解决必应搜索不增加积分的问题
-- 【2023-12-08】实时获取热门榜单来作为搜索关键词，目前支持{weibohot}微博热搜榜/{bilihot}哔哩热搜榜/{douyinhot}抖音热搜榜/{zhihuhot}知乎热搜榜/{baiduhot}百度热搜榜。
-- 【2024-01-11】支持自定义搜索词功能，并优化获取热门绑定失败后使用默认搜索词
-
-
-## 备注
-- 🌟 代码在Win10 + Python3.8环境中编写，如果在其他平台上运行出行问题，欢迎提issue。
-
-
-## 待完成的功能
-- 【抓取微博热搜用于搜索】
-- 【添加定时任务功能】 
-- 【添加多用户管理】
-- 【兑换提醒】
-- 【自动适配浏览器和ChromeDriver】
 
 ![image](https://user-images.githubusercontent.com/3378350/230837253-1132c32f-30b5-4ead-9cae-70f8209ef55b.png)
 
