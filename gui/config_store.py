@@ -29,12 +29,21 @@ WORKER_FIELDS: List[Tuple[str, str, str]] = [
     ('doVisualSearch', '视觉搜索', '以图搜图，速度很慢'),
 ]
 
-_SAFE = ['doDesktopSearch', 'doMobileSearch', 'doDailyCheckIn', 'doDailySet', 'doClaimBonusPoints']
+# 省心档（2026-11-10 按用户要求调整）：桌面搜索 + 每日签到 + 每日任务 + 领取奖励积分 + 阅读赚积分。
+# 不含移动搜索 —— CN 区移动端搜索配额本来就是 0，勾了也只会空跑。
+_SAFE = [
+    'doDesktopSearch',
+    'doDailyCheckIn',
+    'doDailySet',
+    'doClaimBonusPoints',
+    'doReadToEarn',
+]
+# 标准档保持原有覆盖面：在省心基础上加回移动搜索和其余内容型任务。
 _STANDARD = _SAFE + [
+    'doMobileSearch',
     'doMorePromotions',
     'doPunchCards',
     'doAppPromotions',
-    'doReadToEarn',
     'doActivateSearchPerk',
 ]
 
@@ -50,7 +59,7 @@ PRESET_WORKERS: Dict[str, Dict[str, bool]] = {
 }
 
 PRESET_HINTS: Dict[str, str] = {
-    '省心': '只做搜索 + 签到 + 每日任务集。约 10 分钟/账号，风控风险最低。',
+    '省心': '只做桌面搜索 + 签到 + 每日任务 + 领取奖励积分 + 阅读赚积分。约 15 分钟/账号，风控风险较低。',
     '标准': '覆盖绝大多数积分来源。约 20-30 分钟/账号，日常推荐这一档。',
     '全都要': '额外叠加「额外搜索」和「视觉搜索」。约 40-60 分钟/账号，耗时越长风险越高。',
 }

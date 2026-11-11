@@ -8,7 +8,7 @@
 """
 
 # 当前客户端版本（与服务器接口的 Version 字段直接比较）
-APP_VERSION = '2026.10.20.1'
+APP_VERSION = '2026.11.11.1'
 
 # 版本接口里的工具名，对应 https://api.hs2049.cn/tools/<TOOL_NAME>
 TOOL_NAME = 'MicrosoftRewards'

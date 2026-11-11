@@ -26,6 +26,7 @@ import customtkinter as ctk
 if not getattr(sys, 'frozen', False):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import authorization_utils  # noqa: E402
 import config_store as cs  # noqa: E402
 import env_store  # noqa: E402
 import update_checker  # noqa: E402
@@ -726,6 +727,11 @@ class App(ctk.CTk):
             self.lbl_scope.configure(text='只跑 %s' % acc['email'], text_color='gray50')
 
     def _start(self) -> None:
+        # 授权门槛：开源构建没有 license_keys.py → is_authorized() 恒为 True，不打扰
+        if not authorization_utils.is_authorized():
+            if not authorization_utils.prompt_license(self):
+                self._set_status('未授权，已取消运行', DANGER)
+                return
         node_exe = self.ent_node.get().strip()
         if not node_exe or not os.path.isfile(node_exe):
             messagebox.showwarning('找不到 Node', '请指定正确的 node.exe（项目要求 Node ≥ 24）。')

@@ -225,6 +225,58 @@ def test_run_scope() -> None:
         win.destroy()
 
 
+def test_authorization(tmp: str) -> None:
+    """只测纯函数 / 临时文件，不写注册表、不联网。"""
+    print('\n[authorization] license gate')
+    import authorization_utils as auth
+
+    check('normalize strips spaces and upper-cases',
+          auth.normalize(' h1985-x1227-h2049-s0218 ') == 'H1985-X1227-H2049-S0218',
+          auth.normalize(' h1985-x1227-h2049-s0218 '))
+    check('squash ignores dashes and case',
+          auth._squash('h1985 x1227-h2049-s0218') == 'H1985X1227H2049S0218',
+          auth._squash('h1985 x1227-h2049-s0218'))
+
+    if auth.valid_codes():
+        known = sorted(auth.VALID_LICENSE_CODES)[0]
+        check('known code accepted', auth.verify_code(known), known)
+        check('no dashes / lowercase still accepted',
+              auth.verify_code(known.replace('-', '').lower()))
+        check('wrong code rejected', not auth.verify_code('AAAA-BBBB-CCCC-DDDD'))
+        check('empty code rejected', not auth.verify_code(''))
+        check('is_authorized returns bool', isinstance(auth.is_authorized(), bool))
+    else:
+        check('no whitelist -> open build behaves as authorized', auth.verify_code('anything'))
+
+    # 增删码（写在临时目录，不动真实的 license_keys.py）
+    keys = os.path.join(tmp, 'license_keys.py')
+    with open(keys, 'w', encoding='utf-8') as fh:
+        fh.write('VALID_LICENSE_CODES = set()\n')
+    original = set(auth.VALID_LICENSE_CODES)
+    auth.VALID_LICENSE_CODES.clear()
+    try:
+        check('add code -> added', auth.add_code('test-only-code-0001', path=keys) == 'added')
+        check('add second code -> added', auth.add_code('test-only-code-0002', path=keys) == 'added')
+        check('add same code again -> exists',
+              auth.add_code('TEST-ONLY-CODE-0001', path=keys) == 'exists')
+        check('added code takes effect (no dashes, lowercase)',
+              auth.verify_code('testonlycode0001'))
+        check('add blank code refused', auth.add_code('   ', path=keys) == 'empty')
+        check('remove code -> removed',
+              auth.remove_code('TEST-ONLY-CODE-0001', path=keys) == 'removed')
+        # 白名单里还有 0002，所以 0001 被拒是有效判定（列表空了会退化成全放行）
+        check('removed code rejected', not auth.verify_code('TEST-ONLY-CODE-0001'))
+        check('other code still accepted', auth.verify_code('TEST-ONLY-CODE-0002'))
+        check('remove missing code -> missing',
+              auth.remove_code('NOT-EXIST-9999', path=keys) == 'missing')
+        with open(keys, encoding='utf-8') as fh:
+            check('file rewritten with template header',
+                  'VALID_LICENSE_CODES = {' in fh.read())
+    finally:
+        auth.VALID_LICENSE_CODES.clear()
+        auth.VALID_LICENSE_CODES.update(original)
+
+
 def main() -> int:
     with_ui = '--with-ui' in sys.argv
     print('Microsoft Rewards GUI self-test')
@@ -235,6 +287,7 @@ def main() -> int:
     try:
         test_env_store(tmp)
         test_config_store(tmp)
+        test_authorization(tmp)
         test_runner()
         if with_ui:
             test_run_scope()
